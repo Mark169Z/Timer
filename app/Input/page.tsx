@@ -2,36 +2,38 @@
 import { useState } from 'react';
 import { database, ref, set } from '../lib/firebase'; 
 
+type StatusMessage = "None" | "Timer Sent" | "Failed to send timer" | "Timer Started" | "Timer Stopped" | "Failed to update timer status" | "Timer Cleared";
+
 export default function InputPage() {
-    const [inputTime, setInputTime] = useState("");
-    const [status, setStatus] = useState("None");
+    const [inputTime, setInputTime] = useState<number>(0);
+    const [status, setStatus] = useState<StatusMessage>("None");
 
     const handleSubmit = () => {
         set(ref(database, 'timer'), {
             time: inputTime
         }).then(() => {
            setStatus("Timer Sent");
-        }).catch((error) => {
+        }).catch(() => {
             setStatus("Failed to send timer");
         });
     };
 
-    const handleTime = (status) => {
+    const handleTime = (status: boolean) => {
         set(ref(database, 'active'), {
             isActive: status
         }).then(() => {
            setStatus(status ? "Timer Started" : "Timer Stopped");
-        }).catch((error) => {
+        }).catch(() => {
             setStatus("Failed to update timer status");
         });
     };
 
     const clearTimer = () => {
         set(ref(database, 'timer'), {
-            timer: 0
+            time: 0
         }).then(() => {
            setStatus("Timer Cleared");
-        }).catch((error) => {
+        }).catch(() => {
             setStatus("Failed to update timer status");
         });
     };

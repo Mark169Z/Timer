@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { database, ref, onValue, set } from './lib/firebase'; 
 
 export default function CountdownTimer() {
-    const [time, setTime] = useState(0); 
-    const [isActive, setIsActive] = useState(false); 
+    const [time, setTime] = useState<number>(0); 
+    const [isActive, setIsActive] = useState<boolean>(false); 
 
     useEffect(() => {
         const timeRef = ref(database, 'timer');
@@ -24,7 +24,6 @@ export default function CountdownTimer() {
             }
         });
 
-
         return () => {
             unsubscribeTime();
             unsubscribeActive();
@@ -34,14 +33,16 @@ export default function CountdownTimer() {
     useEffect(() => {
         set(ref(database, 'timer'), {
             time: 0
-        })
+        }).catch(() => console.error('Failed to reset timer'));
+
         set(ref(database, 'active'), {
             isActive: false
-        })
-    }, [])
+        }).catch(() => console.error('Failed to reset active status'));
+    }, []);
 
     useEffect(() => {
-        let intervalId;
+        let intervalId: NodeJS.Timeout | undefined;
+
         if (isActive && time > 0) {
             intervalId = setInterval(() => {
                 setTime(prevTime => {
@@ -54,16 +55,18 @@ export default function CountdownTimer() {
             }, 1000); 
         }
 
-        return () => clearInterval(intervalId); 
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
     }, [isActive, time]);
 
-    const formatTime = (seconds) => {
+    const formatTime = (seconds: number): string => {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     };
-
-    useEffect
 
     return (
         <div className='h-screen w-screen flex justify-center items-center'>
